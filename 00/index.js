@@ -1,94 +1,43 @@
 //http://localhost:1234/00/index.html
 import { createMachine } from 'xstate';
 
-const elOutput = document.querySelector('#output');
+//Just an example
 
-function output(object) {
-  elOutput.innerHTML = JSON.stringify(object, null, 2);
-}
-
-console.log('Welcome to the XState workshop!');
-
-const user = {
-  name: 'David Khourshid',
-  company: 'Microsoft',
-  interests: ['piano', 'state machines'],
-};
-
-output(user);
-
-//Started coding: Create State Machine
-
-const machine = {
-  initial: 'idle',
+const feedbackMachine = createMachine({
+  initial: 'question',
+  //in the presentation you'll see the shorthand. This is a full version
   states: {
-    idle: {
+    question: {
       on: {
-        FETCH: 'pending'
+        CLICK_GOOD: {
+          target: 'thanks'
+        }
       }
     },
-    pending: {
-      on: {
-        RESOLVE: 'resolved',
-        REJECT: 'rejected'
-      }
-    },
-    resolved: {},
-    rejected: {}
+    form: {},
+    thanks: {},
+    closed: {}
   }
+})
+console.log('feedbackMachine', feedbackMachine)
+//We will see the StateNode - a huge object with different properties
+
+console.log('initialState: ', feedbackMachine.initialState);
+
+//We have the state "value": what state we're currently on.
+//We have events. This is a special internal event (xstate.init) that says the machine just started. Any event that you pass in will appear in the events property of your state object.
+
+//so in events, something that we sent in the machine, can either be a plain string which represents the events type or it could be an event object. If you've come from Redux or NgRx or ViewX, this might seem very familiar to you. An event is an object with a type and the type represents the type or name of that event.
+
+//Let's make an event
+
+const clickGoodEvent = {
+  type: 'CLICK_GOOD',
+  time: Date.now()
 }
 
-const transition = (state, event) => {
-  return machine.states[state]
-    ?.on?.[event] || state;
-  //question mark - ES6 syntax: if that property machine.states[state] exists - returns it if not - gives undefined.
-  //this return state should give us next state but in case the machine does not accept this event in the current state that it's in, we just wnat to return the state.
-}
-//-------1 Possible transition -------
-// Let's see the result of our function
+//Let's transit to the next state
 
-/*
-output({
-  state: transition('idle', 'FETCH')
-});
-*/
-//We see in the browser: {state: pending}. It means that transition from 'idle' to 'pending' happend.
+const nextState = feedbackMachine.transition(feedbackMachine.initialState, clickGoodEvent);
+console.log("Next state: ", nextState);//transition to "thanks" happend if you look at "value"
 
-// ------- 2 Impossible transition -----
-//Let's try imposible transition:
-
-/*
-output({ state: transition('pending', 'FETCH') })
-*/
-
-//We see in the browser: {state: pending}. We still in the 'pending' state. Nothing happend there because there is no 'FETCH' event in the pending state.
-
-//--------- 3 Possible transition ------
-
-output({ state: transition('pending', 'RESOLVE') })
-// We see in the browser: {"state": "resolved"}. Transition happend "pending" --> "resolved".
-
-//Limitations of this approach:
-/*
-Doing this pure functions is fine, but we need some sort of way of keeping track of the current state.
-
-And obviously, that's a little bit side effecty, ie we can't really use pure functions. And in fact, any application that you work on is not going to be 100% pure, because after all, you need to output things on the screen or you need to do some sort of side effect or something.
-
-And so that's where we get into interpreting state machines.
-*/
-
-//Create an INTERPRETER
-let currentState = machine.initial;
-const send = (event) => {
-  const nextState = transition(currentState, event)
-  console.log('nextState: ', nextState);
-  currentState = nextState;
-}
-
-// What's it doing? Whenever we send an event, it's going to mutate this current state so that we keep track of what the currentState is. And then it's going to log out that nextState.
-
-//To check it
-window.send = send;
-//so put in the console in the browser: send("FETCH")---> enter---> "pending" --> send("REJECT") --> enter -> "rejected".
-
-//So it's internally keeping track and we're outputting the nextState based on the currentState in the events that was just sent.

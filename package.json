@@ -1,7 +1,7 @@
 {
   "name": "frontend-masters-xstate-workshop",
   "version": "1.0.0",
-  "description": "Frontend Masters XState Workshop",
+  "description": "Frontend Masters XState Workshop/",
   "main": "index.js",
   "scripts": {
     "start": "parcel **/*.html",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/davidkpiano/frontend-masters-xstate-workshop.git"
+    "url": "git+https://github.com/IryArkhy/finite-state-machines.git"
   },
   "author": "David Khourshid",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/davidkpiano/frontend-masters-xstate-workshop/issues"
+    "url": "hhttps://github.com/IryArkhy/finite-state-machines.git/issues"
   },
-  "homepage": "https://github.com/davidkpiano/frontend-masters-xstate-workshop#readme",
+  "homepage": "https://github.com/IryArkhy/finite-state-machines#readme",
   "dependencies": {
     "xstate": "^4.9.1"
   },
