@@ -37,6 +37,14 @@ const resetPosition = assign({
   py: 0,
 });
 
+// ME: Added this function
+const incrementDragsCount = assign({
+  drags: (context) => context.drags + 1,
+});
+
+//ME: condition for drags
+const setLimitForDrags = (context, event) => context.drags < 5;
+
 const machine = createMachine({
   initial: 'idle',
   context: {
@@ -54,16 +62,34 @@ const machine = createMachine({
         mousedown: {
           // Don't select this transition unless
           // there are < 5 drags
-          // ...
+          // ME: added condition
+          cond: setLimitForDrags, // if true - it's alowed to happen
+          //ME: Var1) added array of actions with last function to satisfy the requirement in the comment below after "dragging":
+          // actions: [assignPoint, incrementDragsCount],
+          //Var2: leave it as it is and change "entry" field in the "dragging state"
           actions: assignPoint,
           target: 'dragging',
         },
+
+        //----------- Or It can be array to display more than 1 transition -----------
+        // If the fist transition in the arr is not taken, then 2d will take place: !dragging ---> draggedOut
+        // mousedown: [{
+        //   cond: setLimitForDrags,
+        //   actions: assignPoint,
+        //   target: 'dragging',
+        // }, {
+        //   target: 'draggedOut'
+        // }],
       },
+    },
+    draggedOut: {
+      type: 'final'
     },
     dragging: {
       // Whenever we enter this state, we want to
       // increment the drags count.
-      // ...
+      //ME: added entry function
+      entry: incrementDragsCount,
       on: {
         mousemove: {
           actions: assignDelta,
@@ -79,15 +105,21 @@ const machine = createMachine({
       },
     },
   },
+}, {
+  guards: {
+    //if you want to test it, you could easily override the function here. But the function itself should be string above: cond: 'setLimitForDrags',
+    setLimitForDrags: setLimitForDrags
+  }
 });
 
 const service = interpret(machine);
 
 service.onTransition((state) => {
   if (state.changed) {
-    console.log(state.context);
+    console.log(state.context.drags);
 
     elBox.dataset.state = state.value;
+    //display number of drags on the element
     elBox.dataset.drags = state.context.drags;
 
     elBox.style.setProperty('--dx', state.context.dx);
