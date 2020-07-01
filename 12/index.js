@@ -1,5 +1,5 @@
 //http://localhost:1234/12/index.html
-import { createMachine, assign, interpret } from 'xstate';
+import { createMachine, assign, interpret, send } from 'xstate';
 
 const elBox = document.querySelector('#box');
 
@@ -25,32 +25,43 @@ const machine = createMachine({
     },
     pending: {
       on: {
-        RESOLVE: 'resolved',
-        CANCEL: 'idle'
+        I_AM_DONE: 'resolved',
+        CANCEL: 'idle',
+        SEND_IT_ALREADY: {
+          actions: send({
+            type: 'SEND_IT_ALREADY'
+          }, {
+            to: 'child'
+          })
+        }
       },
       invoke: {
-        // Invoke your promise here.
-        // The `src` should be a function that returns the source.
-        src: (context, event) => {
-          return randomFetch();
+        id: 'child',
+        //invoking callbacks - callback source
+        src: (context, event) => (sendBack, receive) => {
+          //1---sendBack
+          // setTimeout(() => {
+          //   sendBack({
+          //     type: "I_AM_DONE"
+          //   })
+          // }, 2000)
+
+          //2---receive
+          receive((event) => {
+            if (event.type === 'SEND_IT_ALREADY')
+              sendBack({
+                type: "I_AM_DONE"
+              })
+          })
         },
-        onDone: {
-          target: 'resolved',
-          actions: (_, event) => console.log(event)
-        },
-        onError: {
-          target: 'rejected'
-        }
       },
     },
     resolved: {
-      // Add a transition to fetch again
       on: {
         FETCH: 'pending'
       }
     },
     rejected: {
-      // Add a transition to fetch again
       on: {
         FETCH: 'pending'
       }
@@ -74,5 +85,5 @@ elBox.addEventListener('click', (event) => {
 
 const elCancel = document.querySelector('#cancel');
 elCancel.addEventListener('click', (event) => {
-  service.send('CANCEL');
+  service.send('SEND_IT_ALREADY');
 });
