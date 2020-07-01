@@ -5,17 +5,53 @@ const elOffButton = document.querySelector('#offButton');
 const elOnButton = document.querySelector('#onButton');
 const elModeButton = document.querySelector('#modeButton');
 
+//Example of history state
+const someMachine = createMachine({
+  initial: 'something',
+  states: {
+    something: {
+      one: {},
+      two: {},
+      //special pseudo state
+      hist: {
+        type: 'history'
+      }
+    },
+    somethingElse: {
+      on: {
+        TOGGLE: 'something.hist'
+      }
+    }
+  }
+})
+
 const displayMachine = createMachine({
   initial: 'hidden',
   states: {
     hidden: {
       on: {
-        TURN_ON: 'visible',
+        //directly to a history state of visible
+        TURN_ON: 'visible.hist',
       },
     },
     visible: {
       // Add hierarchical states for light/dark mode.
-      // ...
+      initial: 'light',
+      states: {
+        light: {
+          on: {
+            SWITCH: 'dark'
+          }
+        },
+        dark: {
+          on: {
+            SWITCH: 'light'
+          }
+        },
+        hist: {
+          type: 'history'
+        }
+      },
 
       // Then, add a history state that remembers which mode we used.
       // ...
